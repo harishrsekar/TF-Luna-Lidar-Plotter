@@ -1,28 +1,39 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-# File path for your Excel file
-file_path = r"excel1.xlsx"
+excel_files = ['excel1.xlsx', 'excel2.xlsx', 'excel3.xlsx', 'excel4.xlsx']
 
-# Reading the Excel file
-df = pd.read_excel(file_path)
+angles_list = []
+distances_list = []
+depth_list = []
 
-# Extracting angles and distances
-angles = df['Angle'].values  # Assuming the column name is 'Angle (Â°)'
-distances = df['Distance'].values  # Assuming the column name is 'Distance (cm)'
+for depth, file in enumerate(excel_files):
+    df = pd.read_excel(file)
+    angles = df['Angle'].values
+    distances = df['Distance'].values
+    angles_in_radians = np.deg2rad(angles)
+    angles_list.append(angles_in_radians)
+    distances_list.append(distances)
+    depth_list.append(np.full_like(angles_in_radians, depth))
 
-# Convert angles to radians (for polar plot)
-angles = np.deg2rad(angles)
+angles_array = np.array(angles_list)
+distances_array = np.array(distances_list)
+depth_array = np.array(depth_list)
 
-# Plotting the radar-like graph
-plt.figure(figsize=(6, 6))
-ax = plt.subplot(111, projection='polar')
-ax.set_theta_zero_location('N')  # North at the top
-ax.set_theta_direction(-1)  # Clockwise direction
+X = distances_array * np.cos(angles_array)
+Y = distances_array * np.sin(angles_array)
+Z = depth_array
 
-ax.plot(angles, distances)
-ax.fill(angles, distances, alpha=0.3)  # Fill the area under the curve
-ax.set_title("Lidar Output (Angle vs Distance)")
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+ax.scatter(X, Y, Z, c=Z, cmap='viridis', marker='o')
+
+ax.set_xlabel('X (cm)')
+ax.set_ylabel('Y (cm)')
+ax.set_zlabel('Depth (Layers)')
+ax.set_title('3D Plot of Pipe')
 
 plt.show()
